@@ -1,0 +1,73 @@
+{# =========================================================
+   models_template.j2   –  FINAL FIX
+   ========================================================= #}
+
+from datetime import datetime
+from sqlalchemy import (
+    Column, String, Text, Integer, Float, Boolean, Date, TIMESTAMP, DECIMAL,
+    Index, UniqueConstraint, ForeignKey, ForeignKeyConstraint,
+    PrimaryKeyConstraint, CheckConstraint, text, func, SmallInteger
+)
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship
+import uuid
+
+Base = declarative_base()
+
+{% macro render_sqla_type(col) -%}
+{# 文字列型は collate を必ず付与 #}
+{%- set is_str = col.type.startswith("String") %}
+{%- set coll = col.collation if col.collation else ("ja_JP.utf8" if is_str else None) %}
+{{ col.type }}{% if col.args or coll %}(
+    {%- if col.args %}{{ col.args | join(", ") }}{%- endif -%}
+    {%- if col.args and coll %}, {% endif -%}
+    {%- if coll %}collation='{{ coll }}'{%- endif -%}
+){% endif %}
+{%- endmacro %}
+
+{% for model in models %}
+class {{ model.class_name }}(Base):
+    """
+    {{ ('\u3000' + model.description.strip()).replace('\n', '\n    \u3000') }}
+    """
+    __tablename__ = '{{ model.table_name }}'
+{%     for col in model.columns %}
+    {% set parts = [] %}
+    {% set _ = parts.append("'" ~ col.get('db_column', col.name) ~ "'") %}
+    {% set _ = parts.append(render_sqla_type(col)) %}
+    {% if col.primary_key   %}{% set _ = parts.append("primary_key=True")   %}{% endif %}
+    {% if col.autoincrement %}{% set _ = parts.append("autoincrement=True") %}{% endif %}
+    {% if col.nullable in [True, False] %}{% set _ = parts.append("nullable=" ~ col.nullable) %}{% endif %}
+    {% if col.unique        %}{% set _ = parts.append("unique=True")        %}{% endif %}
+    {% if col.index         %}{% set _ = parts.append("index=True")         %}{% endif %}
+    {% if col.default       %}{% set _ = parts.append("default=" ~ col.default) %}{% endif %}
+    {% if col.onupdate      %}{% set _ = parts.append("onupdate=" ~ col.onupdate) %}{% endif %}
+    {% if col.server_default%}{% set _ = parts.append("server_default=" ~ col.server_default) %}{% endif %}
+    {% if col.comment       %}{% set _ = parts.append("comment='" ~ col.comment ~ "'") %}{% endif %}
+    {{ col.name }} = Column({{ parts | join(", ") }})
+{%     endfor %}
+
+{%     if model.mapper_args %}
+    __mapper_args__ = {
+{%         for k, v in model.mapper_args.items() %}
+        '{{ k }}': {{ v }}{% if not loop.last %},{% endif %}
+{%         endfor %}
+
+    }
+{%     endif %}
+
+{%     if model.indexes or model.uniques %}
+    {%- set tbl_parts = [] %}
+    {%- for idx in model.indexes %}
+        {%- set idx_name = 'ix_' ~ model.table_name ~ ('' if idx|length == 1 else '_' ~ idx | join('_')) %}
+        {%- set cols = '"' ~ (idx | join('", "')) ~ '"' %}
+        {%- set _ = tbl_parts.append("Index('" ~ idx_name ~ "', " ~ cols ~ ")") %}
+    {%- endfor %}
+    {%- for uq in model.uniques %}
+        {%- set cols = '"' ~ (uq | join('", "')) ~ '"' %}
+        {%- set _ = tbl_parts.append("UniqueConstraint(" ~ cols ~ ")") %}
+    {%- endfor %}
+    __table_args__ = ({{ tbl_parts | join(", ") }},)
+{%     endif %}
+
+
+{% endfor %}

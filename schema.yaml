@@ -1,0 +1,834 @@
+models:
+  - class_name: Tenant
+    table_name: tenants
+    description: |
+      テナントIDとUUIDを管理するORMクラス
+    columns:
+      - name: tenant_id
+        type: String
+        args: [64]
+        primary_key: true
+        nullable: false
+        comment: テナントID
+      - name: uuid
+        type: String
+        args: [36]
+        unique: true
+        nullable: false
+        default: "lambda: str(uuid.uuid4())"
+        comment: UUID
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+
+  - class_name: TimeCardLayer
+    table_name: t_time_card_layer
+    description: タイムカード層
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: work_schedule_code
+        type: String
+        args: [10]
+        nullable: true
+        comment: 勤務体系コード
+      - name: stamping_start_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 出勤時間
+      - name: stamping_end_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 退勤時間
+      - name: start_time_office_code
+        type: String
+        args: [10]
+        nullable: true
+        comment: 出勤打刻_事業所コード
+      - name: end_time_office_code
+        type: String
+        args: [10]
+        nullable: true
+        comment: 退勤打刻_事業所コード
+      - name: telework_flg
+        type: Boolean
+        nullable: true
+        comment: テレワークフラグ
+      - name: smile_mark
+        type: String
+        args: [10]
+        nullable: true
+        comment: スマイルマーク
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: StandardWorkLayer
+    table_name: t_standard_work_layer
+    description: 標準労働層
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: ground_code
+        type: String
+        args: [10]
+        nullable: true
+        comment: 事由コード
+      - name: stamping_start_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 出勤時間
+      - name: stamping_end_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 退勤時間
+      - name: rounded_stamping_start_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 丸め出勤時間
+      - name: rounded_stamping_end_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 丸め退勤時間
+      - name: job_start
+        type: String
+        args: [8]
+        nullable: true
+        comment: 始業時間
+      - name: job_end
+        type: String
+        args: [8]
+        nullable: true
+        comment: 終業時間
+      - name: working_interval
+        type: Integer
+        nullable: true
+        comment: インターバル時間
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数    
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: BreakLayer
+    table_name: t_break_layer
+    description: 休憩時間層
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: break_start_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 休憩開始時間
+      - name: break_end_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 休憩終了時間
+      - name: rounded_break_start_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 丸め休憩開始時間
+      - name: rounded_break_end_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 丸め休憩終了時間
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: StatutoryWorkLayer
+    table_name: t_statutory_work_layer
+    description: 法定労働層
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: standard_legal_minutes
+        type: Integer
+        nullable: true
+        comment: 標準法定労働時間
+      - name: legal_job_minutes
+        type: Integer
+        nullable: true
+        comment: 法定労働時間
+      - name: legal_overwork_minutes
+        type: Integer
+        nullable: true
+        comment: 法定外労働時間
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: PrescribedWorkLayer
+    table_name: t_prescribed_work_layer
+    description: 所定労働層
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: standard_job_minutes
+        type: Integer
+        nullable: true
+        comment: 標準所定労働時間
+      - name: job_total_minutes
+        type: Integer
+        nullable: true
+        comment: 所定労働時間
+      - name: job_overwork_minutes
+        type: Integer
+        nullable: true
+        comment: 所定外労働時間
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: PrescribedHolidayWorkLayer
+    table_name: t_prescribed_holiday_work_layer
+    description: 所定休日労働層
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: prescribed_holiday_work_minutes
+        type: Integer
+        nullable: true
+        comment: 所定休日労働時間
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: StatutoryHolidayWorkLayer
+    table_name: t_statutory_holiday_work_layer
+    description: 法定休日労働層
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: statutory_holiday_work_minutes
+        type: Integer
+        nullable: true
+        comment: 法定休日労働時間
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: NightWorkLayer
+    table_name: t_night_work_layer
+    description: 深夜労働層
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: late_night_overwork_minutes
+        type: Integer
+        nullable: true
+        comment: 深夜労働時間
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: PaidLeaveLayer
+    table_name: t_paid_leave_layer
+    description: 有給休暇層
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: paid_holiday_hours
+        type: Integer
+        nullable: true
+        comment: 有給時間数
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: ChildLeaveLayer
+    table_name: t_child_leave_layer
+    description: 育児休暇層
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: child_time_leave_hours
+        type: Integer
+        nullable: true
+        comment: 育児時間休暇
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: LateEarlyLayer
+    table_name: t_late_early_layer
+    description: 遅刻早退層
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: late_minutes
+        type: Integer
+        nullable: true
+        comment: 遅刻時間
+      - name: early_departure_minutes
+        type: Integer
+        nullable: true
+        comment: 早退時間
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: AbsenceLayer
+    table_name: t_absence_layer
+    description: 欠勤層
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: absence_minutes
+        type: Integer
+        nullable: true
+        comment: 欠勤時間
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: SubstituteLeaveLayer
+    table_name: t_substitute_leave_layer
+    description: 代休層（日単位、実体は存在のみで表現）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: SuspensionLayer
+    table_name: t_suspension_layer
+    description: 休職層（日単位、実体は存在のみで表現）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
+
+  - class_name: ClosedLayer
+    table_name: t_closed_layer
+    description: 休業層（日単位、実体は存在のみで表現）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        index: true
+        comment: 従業員UUID
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者従業員コード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者従業員コード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+    uniques:
+      - [employee_uuid, target_date]
