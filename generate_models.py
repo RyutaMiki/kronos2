@@ -25,6 +25,7 @@ else:
 if not src_file.exists():
     sys.exit(f"[ERROR] ファイルが見つかりません: {src_file}")
 
+
 # ------------------------------------------------------------
 # 2. JSON / YAML ロード
 # ------------------------------------------------------------
@@ -36,6 +37,7 @@ def load_file(path: Path):
             sys.exit("[ERROR] PyYAML が未インストールです → pip install pyyaml")
         return yaml.safe_load(path.read_text(encoding="utf-8"))
     return json.loads(path.read_text(encoding="utf-8"))
+
 
 data = load_file(src_file)
 
