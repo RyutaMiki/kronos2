@@ -9,11 +9,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: user_id
+      - name: user_uuid
         type: String
         args: [36]
-        primary_key: false
+        unique: true
         nullable: false
+        default: "lambda: str(uuid.uuid4())"
         comment: ユーザーUUID
       - name: user_name
         type: String
@@ -51,13 +52,7 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: tenant_id
-        type: String
-        args: [64]
-        primary_key: false
-        nullable: false
-        comment: 会社コード
-      - name: uuid
+      - name: tenant_uuid
         type: String
         args: [36]
         unique: true
@@ -95,27 +90,16 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
-        type: String
-        args: [36]
-        primary_key: false
-        nullable: false
-        comment: 従業員UUID
-      - name: user_id
-        type: String
-        args: [36]
-        nullable: false
-        comment: UserテーブルのUUID
       - name: tenant_uuid
         type: String
         args: [36]
         nullable: false
-        comment: TenantテーブルのUUID
-      - name: employee_code
+        comment: テナントUUID
+      - name: user_uuid
         type: String
-        args: [10]
+        args: [36]
         nullable: false
-        comment: 会社ごとの社員番号
+        comment: ユーザーUUID
       - name: create_employee_code
         type: String
         args: [10]
@@ -139,15 +123,15 @@ models:
 
     constraints:
       - type: foreign_key
-        columns: [user_id]
+        columns: [user_uuid]
         references:
           table: users
-          columns: [user_id]
+          columns: [user_uuid]
       - type: foreign_key
         columns: [tenant_uuid]
         references:
           table: tenants
-          columns: [uuid]
+          columns: [tenant_uuid]
 
   - class_name: TimeCardLayer
     table_name: t_time_card_layer
@@ -158,12 +142,11 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -241,11 +224,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（TimeCardLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -360,12 +343,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -447,11 +430,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（StandardWorkLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -569,12 +552,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -638,11 +621,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（BreakLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -741,12 +724,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -801,11 +784,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（StatutoryWorkLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -896,12 +879,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -955,11 +938,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（PrescribedWorkLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1050,12 +1033,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1101,11 +1084,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（PrescribedHolidayWorkLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1188,12 +1171,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1239,11 +1222,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（StatutoryHolidayWorkLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1326,12 +1309,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1377,11 +1360,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（NightWorkLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1464,12 +1447,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1515,11 +1498,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（PaidLeaveLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1602,12 +1585,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1653,11 +1636,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（ChildLeaveLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1740,12 +1723,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1795,11 +1778,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（LateEarlyLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1886,12 +1869,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -1937,11 +1920,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（AbsenceLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -2024,12 +2007,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -2071,11 +2054,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（SubstituteLeaveLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -2154,12 +2137,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -2201,11 +2184,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（SuspensionLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -2284,12 +2267,12 @@ models:
         primary_key: true
         autoincrement: true
         comment: サロゲートキー
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
         index: true
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false
@@ -2331,11 +2314,11 @@ models:
         type: Integer
         nullable: false
         comment: 元テーブル（ClosedLayer）のID
-      - name: employee_uuid
+      - name: user_uuid
         type: String
         args: [36]
         nullable: false
-        comment: ユーザーコード
+        comment: ユーザーUUID
       - name: target_date
         type: Date
         nullable: false

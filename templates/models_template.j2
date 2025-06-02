@@ -1,5 +1,5 @@
 {# =========================================================
-   models_template.j2   –  FINAL FIX
+   models_template.j2   –  FINAL FIX FOR みき
    ========================================================= #}
 
 from datetime import datetime
@@ -31,7 +31,7 @@ class {{ model.class_name }}(Base):
     {{ ('\u3000' + model.description.strip()).replace('\n', '\n    \u3000') }}
     """
     __tablename__ = '{{ model.table_name }}'
-{%     for col in model.columns %}
+{% for col in model.columns %}
     {% set parts = [] %}
     {% set _ = parts.append("'" ~ col.get('db_column', col.name) ~ "'") %}
     {% set _ = parts.append(render_sqla_type(col)) %}
@@ -45,30 +45,29 @@ class {{ model.class_name }}(Base):
     {% if col.server_default%}{% set _ = parts.append("server_default=" ~ col.server_default) %}{% endif %}
     {% if col.comment       %}{% set _ = parts.append("comment='" ~ col.comment ~ "'") %}{% endif %}
     {{ col.name }} = Column({{ parts | join(", ") }})
-{%     endfor %}
-
-{%     if model.mapper_args %}
+{% endfor %}
+{% if model.mapper_args %}
     __mapper_args__ = {
 {%         for k, v in model.mapper_args.items() %}
         '{{ k }}': {{ v }}{% if not loop.last %},{% endif %}
 {%         endfor %}
-
     }
-{%     endif %}
+{% endif %}
+{% if model.indexes or model.uniques -%}
+    {%- set tbl_parts = [] -%}
+    {%- for idx in model.indexes -%}
+        {%- set idx_name = 'ix_' ~ model.table_name ~ ('' if idx|length == 1 else '_' ~ idx | join('_')) -%}
+        {%- set cols = '"' ~ (idx | join('", "')) ~ '"' -%}
+        {%- set _ = tbl_parts.append("Index('" ~ idx_name ~ "', " ~ cols ~ ")") -%}
+    {%- endfor -%}
+    {%- for uq in model.uniques -%}
+        {%- set cols = '"' ~ (uq | join('", "')) ~ '"' -%}
+        {%- set _ = tbl_parts.append("UniqueConstraint(" ~ cols ~ ")") -%}
+    {%- endfor -%}
+    {{ "    " }}__table_args__ = ({{ tbl_parts | join(", ") }},)
+{% endif %}
+{%- if not loop.last %}
 
-{%     if model.indexes or model.uniques %}
-    {%- set tbl_parts = [] %}
-    {%- for idx in model.indexes %}
-        {%- set idx_name = 'ix_' ~ model.table_name ~ ('' if idx|length == 1 else '_' ~ idx | join('_')) %}
-        {%- set cols = '"' ~ (idx | join('", "')) ~ '"' %}
-        {%- set _ = tbl_parts.append("Index('" ~ idx_name ~ "', " ~ cols ~ ")") %}
-    {%- endfor %}
-    {%- for uq in model.uniques %}
-        {%- set cols = '"' ~ (uq | join('", "')) ~ '"' %}
-        {%- set _ = tbl_parts.append("UniqueConstraint(" ~ cols ~ ")") %}
-    {%- endfor %}
-    __table_args__ = ({{ tbl_parts | join(", ") }},)
-{%     endif %}
 
-
+{% endif %}
 {% endfor %}
