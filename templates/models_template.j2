@@ -1,5 +1,5 @@
 {# =========================================================
-   models_template.j2   –  FINAL FIX FOR みき
+   models_template.j2   –  FINAL FINAL FINAL FIX FOR みき
    ========================================================= #}
 
 from datetime import datetime
@@ -15,7 +15,6 @@ from enumType import EnumType
 Base = declarative_base()
 
 {% macro render_sqla_type(col) -%}
-{# 文字列型は collate を必ず付与 #}
 {%- set is_str = col.type.startswith("String") %}
 {%- set coll = col.collation if col.collation else ("ja_JP.utf8" if is_str else None) %}
 {{ col.type }}{% if col.args or coll %}(
@@ -53,21 +52,48 @@ class {{ model.class_name }}(Base):
 {%         endfor %}
     }
 {% endif %}
-{% if model.indexes or model.uniques -%}
-    {%- set tbl_parts = [] -%}
-    {%- for idx in model.indexes -%}
-        {%- set idx_name = 'ix_' ~ model.table_name ~ ('' if idx|length == 1 else '_' ~ idx | join('_')) -%}
-        {%- set cols = '"' ~ (idx | join('", "')) ~ '"' -%}
-        {%- set _ = tbl_parts.append("Index('" ~ idx_name ~ "', " ~ cols ~ ")") -%}
-    {%- endfor -%}
-    {%- for uq in model.uniques -%}
-        {%- set cols = '"' ~ (uq | join('", "')) ~ '"' -%}
-        {%- set _ = tbl_parts.append("UniqueConstraint(" ~ cols ~ ")") -%}
-    {%- endfor -%}
-    {{ "    " }}__table_args__ = ({{ tbl_parts | join(", ") }},)
-{% endif %}
+{# ---- ここから __table_args__ をすべてカバー ---- #}
+{% set tbl_args = [] %}
+{%- if model.indexes %}
+    {%- for idx in model.indexes %}
+        {%- set idx_name = 'ix_' ~ model.table_name ~ ('' if idx|length == 1 else '_' ~ idx | join('_')) %}
+        {%- set cols = idx | map('string') | join(', ') %}
+        {%- set _ = tbl_args.append("Index('" ~ idx_name ~ "', " ~ cols ~ ")") %}
+    {%- endfor %}
+{%- endif %}
+{%- if model.uniques %}
+    {%- for uq in model.uniques %}
+        {%- set cols = uq | map('string') | join(', ') %}
+        {%- set _ = tbl_args.append("UniqueConstraint(" ~ cols ~ ")") %}
+    {%- endfor %}
+{%- endif %}
+{%- if model.constraints %}
+    {%- for c in model.constraints %}
+        {%- if c.type == 'unique' %}
+            {%- set cols = c.columns | join("', '") %}
+            {%- set cols = "'" ~ cols ~ "'" %}
+            {%- set _ = tbl_args.append("UniqueConstraint(" ~ cols ~ ")") %}
+        {%- elif c.type == 'foreign_key' %}
+            {%- set local_cols = c.columns | join("', '") %}
+            {%- set local_cols = "'" ~ local_cols ~ "'" %}
+            {%- set targets = [] %}
+            {%- for col in c.references.columns %}
+                {%- set _ = targets.append("'" ~ c.references.table ~ "." ~ col ~ "'") %}
+            {%- endfor %}
+            {%- set remote = targets | join(', ') %}
+            {%- set _ = tbl_args.append("ForeignKeyConstraint([" ~ local_cols ~ "], [" ~ remote ~ "])") %}
+        {%- endif %}
+    {%- endfor %}
+{%- endif %}
+{%- if tbl_args %}
+    __table_args__ = (
+        {{ tbl_args | join(",\n        ") }}
+    )
+{%- endif %}
 {%- if not loop.last %}
+
 
 
 {% endif %}
 {% endfor %}
+

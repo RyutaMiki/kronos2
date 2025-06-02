@@ -26,6 +26,7 @@ class User(Base):
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
 
 
+
 class Tenant(Base):
     """
     　会社ごとのテナント情報
@@ -39,18 +40,27 @@ class Tenant(Base):
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
 
 
+
 class Employee(Base):
     """
     　会社ごとにどのユーザーが所属しているか管理
+    　同じユーザーが再入社した場合は新しいレコードを追加し、履歴を保持する
     """
     __tablename__ = 'employees'
     id = Column('id', Integer, primary_key=True, autoincrement=True, comment='サロゲートキー')
     tenant_uuid = Column('tenant_uuid', String(36, collation='ja_JP.utf8'), nullable=False, comment='テナントUUID')
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, comment='ユーザーUUID')
+    belong_start_date = Column('belong_start_date', Date, nullable=False, comment='所属開始日')
+    belong_end_date = Column('belong_end_date', Date, nullable=True, comment='所属終了日（現役中はNULL）')
     create_employee_code = Column('create_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
+    __table_args__ = (
+        ForeignKeyConstraint(['user_uuid'], ['users.user_uuid']),
+        ForeignKeyConstraint(['tenant_uuid'], ['tenants.tenant_uuid']),
+        UniqueConstraint('tenant_uuid', 'user_uuid', 'belong_start_date')
+    )
 
 
 class TimeCardLayer(Base):
@@ -72,7 +82,9 @@ class TimeCardLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class TimeCardLayerHistory(Base):
@@ -103,6 +115,9 @@ class TimeCardLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class StandardWorkLayer(Base):
@@ -125,7 +140,9 @@ class StandardWorkLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class StandardWorkLayerHistory(Base):
@@ -156,6 +173,9 @@ class StandardWorkLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class BreakLayer(Base):
@@ -174,7 +194,9 @@ class BreakLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class BreakLayerHistory(Base):
@@ -201,6 +223,9 @@ class BreakLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class StatutoryWorkLayer(Base):
@@ -218,7 +243,9 @@ class StatutoryWorkLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class StatutoryWorkLayerHistory(Base):
@@ -244,6 +271,9 @@ class StatutoryWorkLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class PrescribedWorkLayer(Base):
@@ -261,7 +291,9 @@ class PrescribedWorkLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class PrescribedWorkLayerHistory(Base):
@@ -287,6 +319,9 @@ class PrescribedWorkLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class PrescribedHolidayWorkLayer(Base):
@@ -302,7 +337,9 @@ class PrescribedHolidayWorkLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class PrescribedHolidayWorkLayerHistory(Base):
@@ -326,6 +363,9 @@ class PrescribedHolidayWorkLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class StatutoryHolidayWorkLayer(Base):
@@ -341,7 +381,9 @@ class StatutoryHolidayWorkLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class StatutoryHolidayWorkLayerHistory(Base):
@@ -365,6 +407,9 @@ class StatutoryHolidayWorkLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class NightWorkLayer(Base):
@@ -380,7 +425,9 @@ class NightWorkLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class NightWorkLayerHistory(Base):
@@ -404,6 +451,9 @@ class NightWorkLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class PaidLeaveLayer(Base):
@@ -419,7 +469,9 @@ class PaidLeaveLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class PaidLeaveLayerHistory(Base):
@@ -443,6 +495,9 @@ class PaidLeaveLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class ChildLeaveLayer(Base):
@@ -458,7 +513,9 @@ class ChildLeaveLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class ChildLeaveLayerHistory(Base):
@@ -482,6 +539,9 @@ class ChildLeaveLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class LateEarlyLayer(Base):
@@ -498,7 +558,9 @@ class LateEarlyLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class LateEarlyLayerHistory(Base):
@@ -523,6 +585,9 @@ class LateEarlyLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class AbsenceLayer(Base):
@@ -538,7 +603,9 @@ class AbsenceLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class AbsenceLayerHistory(Base):
@@ -562,6 +629,9 @@ class AbsenceLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class SubstituteLeaveLayer(Base):
@@ -576,7 +646,9 @@ class SubstituteLeaveLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class SubstituteLeaveLayerHistory(Base):
@@ -599,6 +671,9 @@ class SubstituteLeaveLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class SuspensionLayer(Base):
@@ -613,7 +688,9 @@ class SuspensionLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class SuspensionLayerHistory(Base):
@@ -636,6 +713,9 @@ class SuspensionLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )
 
 
 class ClosedLayer(Base):
@@ -650,7 +730,9 @@ class ClosedLayer(Base):
     update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
     update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
-    __table_args__ = (UniqueConstraint("employee_uuid", "target_date"),)
+    __table_args__ = (
+        UniqueConstraint(user_uuid, target_date)
+    )
 
 
 class ClosedLayerHistory(Base):
@@ -673,3 +755,6 @@ class ClosedLayerHistory(Base):
     operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
     is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    __table_args__ = (
+        UniqueConstraint('original_id', 'history_version')
+    )

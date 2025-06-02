@@ -84,6 +84,7 @@ models:
     table_name: employees
     description: |
       会社ごとにどのユーザーが所属しているか管理
+      同じユーザーが再入社した場合は新しいレコードを追加し、履歴を保持する
     columns:
       - name: id
         type: Integer
@@ -100,6 +101,14 @@ models:
         args: [36]
         nullable: false
         comment: ユーザーUUID
+      - name: belong_start_date
+        type: Date
+        nullable: false
+        comment: 所属開始日
+      - name: belong_end_date
+        type: Date
+        nullable: true
+        comment: 所属終了日（現役中はNULL）
       - name: create_employee_code
         type: String
         args: [10]
@@ -132,6 +141,8 @@ models:
         references:
           table: tenants
           columns: [tenant_uuid]
+      - type: unique
+        columns: [tenant_uuid, user_uuid, belong_start_date]
 
   - class_name: TimeCardLayer
     table_name: t_time_card_layer
@@ -207,7 +218,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: TimeCardLayerHistory
     table_name: t_time_card_layer_history
@@ -330,7 +341,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -414,7 +425,7 @@ models:
         nullable: false
         comment: 更新回数    
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: StandardWorkLayerHistory
     table_name: t_standard_work_layer_history
@@ -539,7 +550,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -604,7 +615,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
 
   - class_name: BreakLayerHistory
@@ -711,7 +722,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -768,7 +779,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: StatutoryWorkLayerHistory
     table_name: t_statutory_work_layer_history
@@ -866,7 +877,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -923,7 +934,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: PrescribedWorkLayerHistory
     table_name: t_prescribed_work_layer_history
@@ -1020,7 +1031,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -1069,7 +1080,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: PrescribedHolidayWorkLayerHistory
     table_name: t_prescribed_holiday_work_layer_history
@@ -1158,7 +1169,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -1207,7 +1218,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: StatutoryHolidayWorkLayerHistory
     table_name: t_statutory_holiday_work_layer_history
@@ -1296,7 +1307,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -1345,7 +1356,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: NightWorkLayerHistory
     table_name: t_night_work_layer_history
@@ -1434,7 +1445,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -1483,7 +1494,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: PaidLeaveLayerHistory
     table_name: t_paid_leave_layer_history
@@ -1572,7 +1583,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -1621,7 +1632,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: ChildLeaveLayerHistory
     table_name: t_child_leave_layer_history
@@ -1710,7 +1721,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -1763,7 +1774,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: LateEarlyLayerHistory
     table_name: t_late_early_layer_history
@@ -1856,7 +1867,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -1905,7 +1916,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: AbsenceLayerHistory
     table_name: t_absence_layer_history
@@ -1994,7 +2005,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -2039,7 +2050,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: SubstituteLeaveLayerHistory
     table_name: t_substitute_leave_layer_history
@@ -2124,7 +2135,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -2169,7 +2180,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: SuspensionLayerHistory
     table_name: t_suspension_layer_history
@@ -2254,7 +2265,7 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
 
@@ -2299,7 +2310,7 @@ models:
         nullable: false
         comment: 更新回数
     uniques:
-      - [employee_uuid, target_date]
+      - [user_uuid, target_date]
 
   - class_name: ClosedLayerHistory
     table_name: t_closed_layer_history
@@ -2384,6 +2395,6 @@ models:
       - type: index
         columns: [transaction_id]
       - type: index
-        columns: [employee_uuid, target_date]
+        columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
