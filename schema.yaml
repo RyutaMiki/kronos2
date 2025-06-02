@@ -1,6 +1,6 @@
 models:
-  - class_name: User
-    table_name: users
+  - class_name: Users
+    table_name: m_users
     description: |
       実在する利用者（人）を一意に管理するテーブル
     columns:
@@ -21,7 +21,12 @@ models:
         args: [50]
         nullable: false
         comment: 氏名
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -32,7 +37,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -42,8 +47,8 @@ models:
         nullable: false
         comment: 更新回数
 
-  - class_name: Tenant
-    table_name: tenants
+  - class_name: Tenants
+    table_name: m_tenants
     description: |
       会社ごとのテナント情報
     columns:
@@ -59,7 +64,12 @@ models:
         nullable: false
         default: "lambda: str(uuid.uuid4())"
         comment: テナントUUID
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -70,7 +80,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -109,7 +119,12 @@ models:
         type: Date
         nullable: true
         comment: 所属終了日（現役中はNULL）
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -120,7 +135,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -134,12 +149,12 @@ models:
       - type: foreign_key
         columns: [user_uuid]
         references:
-          table: users
+          table: m_users
           columns: [user_uuid]
       - type: foreign_key
         columns: [tenant_uuid]
         references:
-          table: tenants
+          table: m_tenants
           columns: [tenant_uuid]
       - type: unique
         columns: [tenant_uuid, user_uuid, belong_start_date]
@@ -196,8 +211,12 @@ models:
         args: [10]
         nullable: true
         comment: スマイルマーク
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -208,7 +227,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -277,8 +296,12 @@ models:
         type: String
         args: [10]
         nullable: true
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -289,7 +312,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -403,8 +426,12 @@ models:
         type: Integer
         nullable: true
         comment: インターバル時間
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -415,7 +442,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -489,7 +516,12 @@ models:
         type: Integer
         nullable: true
         comment: インターバル時間
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -500,7 +532,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -593,8 +625,12 @@ models:
         args: [8]
         nullable: true
         comment: 丸め休憩終了時間
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -605,7 +641,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -661,7 +697,12 @@ models:
         args: [8]
         nullable: true
         comment: 丸め休憩終了時間
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -672,7 +713,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -757,8 +798,12 @@ models:
         type: Integer
         nullable: true
         comment: 法定外労働時間
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -769,7 +814,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -816,7 +861,12 @@ models:
         type: Integer
         nullable: true
         comment: 法定外労働時間
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -827,7 +877,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -912,8 +962,12 @@ models:
         type: Integer
         nullable: true
         comment: 所定外労働時間
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -924,7 +978,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -970,7 +1024,12 @@ models:
         type: Integer
         nullable: true
         comment: 所定外労働時間
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -981,7 +1040,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1058,8 +1117,12 @@ models:
         type: Integer
         nullable: true
         comment: 所定休日労働時間
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1070,7 +1133,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1108,7 +1171,12 @@ models:
         type: Integer
         nullable: true
         comment: 所定休日労働時間
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1119,7 +1187,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1196,8 +1264,12 @@ models:
         type: Integer
         nullable: true
         comment: 法定休日労働時間
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1208,7 +1280,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1246,7 +1318,12 @@ models:
         type: Integer
         nullable: true
         comment: 法定休日労働時間
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1257,7 +1334,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1334,8 +1411,12 @@ models:
         type: Integer
         nullable: true
         comment: 深夜労働時間
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1346,7 +1427,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1384,7 +1465,12 @@ models:
         type: Integer
         nullable: true
         comment: 深夜労働時間
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1395,7 +1481,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1472,8 +1558,12 @@ models:
         type: Integer
         nullable: true
         comment: 有給時間数
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1484,7 +1574,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1522,7 +1612,12 @@ models:
         type: Integer
         nullable: true
         comment: 有給時間数
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1533,7 +1628,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1610,8 +1705,12 @@ models:
         type: Integer
         nullable: true
         comment: 育児時間休暇
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1622,7 +1721,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1660,7 +1759,12 @@ models:
         type: Integer
         nullable: true
         comment: 育児時間休暇
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1671,7 +1775,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1752,8 +1856,12 @@ models:
         type: Integer
         nullable: true
         comment: 早退時間
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1764,7 +1872,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1806,7 +1914,12 @@ models:
         type: Integer
         nullable: true
         comment: 早退時間
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1817,7 +1930,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1894,8 +2007,12 @@ models:
         type: Integer
         nullable: true
         comment: 欠勤時間
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1906,7 +2023,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1944,7 +2061,12 @@ models:
         type: Integer
         nullable: true
         comment: 欠勤時間
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -1955,7 +2077,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -2028,8 +2150,12 @@ models:
         type: Date
         nullable: false
         comment: 対象日
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -2040,7 +2166,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -2074,7 +2200,12 @@ models:
         type: Date
         nullable: false
         comment: 対象日
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -2085,7 +2216,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -2158,8 +2289,12 @@ models:
         type: Date
         nullable: false
         comment: 対象日
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -2170,7 +2305,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -2204,7 +2339,12 @@ models:
         type: Date
         nullable: false
         comment: 対象日
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -2215,7 +2355,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -2288,8 +2428,12 @@ models:
         type: Date
         nullable: false
         comment: 対象日
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
         comment: 作成日時
-      - name: create_employee_code
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -2300,7 +2444,7 @@ models:
         onupdate: datetime.now
         nullable: false
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -2334,7 +2478,12 @@ models:
         type: Date
         nullable: false
         comment: 対象日
-      - name: create_employee_code
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -2345,7 +2494,7 @@ models:
         default: datetime.now
         onupdate: datetime.now
         comment: 更新日時
-      - name: update_employee_code
+      - name: update_user_uuid
         type: String
         args: [10]
         nullable: false
@@ -2398,3 +2547,190 @@ models:
         columns: [user_uuid, target_date]
       - type: unique
         columns: [original_id, history_version]
+
+  - class_name: Role
+    table_name: m_role
+    description: ロール（役割）マスタ
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: role_code
+        type: String
+        args: [30]
+        nullable: false
+        comment: ロールコード
+      - name: role_name
+        type: String
+        args: [30]
+        nullable: false
+        comment: ロール名
+      - name: permission
+        type: EnumType
+        args:
+          - enum_class=Permission
+        nullable: false
+        comment: 代行可能
+      - name: system_company_flg
+        type: EnumType
+        args:
+          - enum_class=SystemCompanyFlg
+        nullable: false
+        comment: システム管理会社フラグ
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
+        type: String
+        args: [10]
+        nullable: false
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+      - name: update_user_uuid
+        type: String
+        args: [10]
+        nullable: false
+      - name: update_count
+        type: Integer
+        nullable: false
+    indexes:
+      - [role_code]
+    uniques:
+      - [role_code]
+    mapper_args:
+      version_id_col: update_count
+
+  - class_name: Policy
+    table_name: m_policy
+    description: アクセス制御ポリシーマスタ
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: principal_type
+        type: EnumType
+        args:
+          - enum_class=PrincipalType
+          - int_enum=True
+        nullable: false
+        comment: 主体種別
+      - name: principal_id
+        type: String
+        args: [64]
+        nullable: false
+        comment: 主体ID
+      - name: resource_type
+        type: EnumType
+        args:
+          - enum_class=ResourceType
+          - int_enum=True
+        nullable: false
+        comment: リソース種別
+      - name: resource_id
+        type: String
+        args: [64]
+        nullable: false
+        comment: リソースID
+      - name: action
+        type: EnumType
+        args:
+          - enum_class=ActionType
+          - int_enum=True
+        nullable: false
+        comment: アクション
+      - name: effect
+        type: EnumType
+        args:
+          - enum_class=EffectType
+          - int_enum=True
+        nullable: false
+        comment: 許可 or 拒否
+      - name: condition
+        type: Text
+        nullable: true
+        comment: 条件[JSON]
+      - name: create_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 作成日時
+      - name: create_user_uuid
+        type: String
+        args: [10]
+        nullable: false
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+      - name: update_user_uuid
+        type: String
+        args: [10]
+        nullable: false
+      - name: update_count
+        type: Integer
+        nullable: false
+    indexes:
+      - [principal_type, principal_id, resource_type, resource_id, action]
+    uniques:
+      - [principal_type, principal_id, resource_type, resource_id, action]
+    mapper_args:
+      version_id_col: update_count
+
+
+  - class_name: Screen
+    table_name: m_screen
+    description: 画面マスタ
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: screen_code
+        type: String
+        args: [6]
+        nullable: false
+        comment: 画面コード
+      - name: screen_name
+        type: String
+        args: [255]
+        nullable: false
+        comment: 画面名
+    indexes:
+      - [screen_code]
+    uniques:
+      - [screen_code]
+
+  - class_name: Api
+    table_name: m_api
+    description: APIマスタ
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: api_name
+        type: String
+        args: [255]
+        nullable: false
+        comment: API名
+      - name: screen_code
+        type: String
+        args: [6]
+        nullable: false
+        comment: 画面コード
+    indexes:
+      - [api_name, screen_code]
+    uniques:
+      - [api_name, screen_code]

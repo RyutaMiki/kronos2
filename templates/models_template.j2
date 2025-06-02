@@ -11,7 +11,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 import uuid
 from enumType import EnumType
-
+from specifiedValue import *
 Base = declarative_base()
 
 {% macro render_sqla_type(col) -%}
@@ -96,4 +96,3 @@ class {{ model.class_name }}(Base):
 
 {% endif %}
 {% endfor %}
-
