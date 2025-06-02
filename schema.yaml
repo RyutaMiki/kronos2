@@ -1,28 +1,30 @@
 models:
-  - class_name: Tenant
-    table_name: tenants
+  - class_name: User
+    table_name: users
     description: |
-      テナントIDとUUIDを管理するORMクラス
+      実在する利用者（人）を一意に管理するテーブル
     columns:
-      - name: tenant_id
-        type: String
-        args: [64]
+      - name: id
+        type: Integer
         primary_key: true
-        nullable: false
-        comment: テナントID
-      - name: uuid
+        autoincrement: true
+        comment: サロゲートキー
+      - name: user_id
         type: String
         args: [36]
-        unique: true
+        primary_key: false
         nullable: false
-        default: "lambda: str(uuid.uuid4())"
-        comment: UUID
-        comment: 作成日時
+        comment: ユーザーUUID
+      - name: user_name
+        type: String
+        args: [50]
+        nullable: false
+        comment: 氏名
       - name: create_employee_code
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -33,11 +35,119 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
+
+  - class_name: Tenant
+    table_name: tenants
+    description: |
+      会社ごとのテナント情報
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: tenant_id
+        type: String
+        args: [64]
+        primary_key: false
+        nullable: false
+        comment: 会社コード
+      - name: uuid
+        type: String
+        args: [36]
+        unique: true
+        nullable: false
+        default: "lambda: str(uuid.uuid4())"
+        comment: テナントUUID
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+
+  - class_name: Employee
+    table_name: employees
+    description: |
+      会社ごとにどのユーザーが所属しているか管理
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: employee_uuid
+        type: String
+        args: [36]
+        primary_key: false
+        nullable: false
+        comment: 従業員UUID
+      - name: user_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: UserテーブルのUUID
+      - name: tenant_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: TenantテーブルのUUID
+      - name: employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 会社ごとの社員番号
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+
+    constraints:
+      - type: foreign_key
+        columns: [user_id]
+        references:
+          table: users
+          columns: [user_id]
+      - type: foreign_key
+        columns: [tenant_uuid]
+        references:
+          table: tenants
+          columns: [uuid]
 
   - class_name: TimeCardLayer
     table_name: t_time_card_layer
@@ -53,7 +163,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -97,7 +207,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -108,13 +218,138 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: TimeCardLayerHistory
+    table_name: t_time_card_layer_history
+    description: |
+      タイムカード層の履歴（保証トランザクション対応）。  
+      更新・削除・ロールバックなどの際に履歴を保持する。
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（TimeCardLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: work_schedule_code
+        type: String
+        args: [10]
+        nullable: true
+        comment: 勤務体系コード
+      - name: stamping_start_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 出勤時間
+      - name: stamping_end_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 退勤時間
+      - name: start_time_office_code
+        type: String
+        args: [10]
+        nullable: true
+        comment: 出勤打刻_事業所コード
+      - name: end_time_office_code
+        type: String
+        args: [10]
+        nullable: true
+        comment: 退勤打刻_事業所コード
+      - name: telework_flg
+        type: Boolean
+        nullable: true
+        comment: テレワークフラグ
+      - name: smile_mark
+        type: String
+        args: [10]
+        nullable: true
+        comment: 作成日時
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+
+      # 保証トランザクション・履歴管理用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態（pending/committed/rolledback等）
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: StandardWorkLayer
     table_name: t_standard_work_layer
@@ -130,7 +365,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -179,7 +414,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -190,13 +425,140 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数    
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: StandardWorkLayerHistory
+    table_name: t_standard_work_layer_history
+    description: |
+      標準労働層の履歴（保証トランザクション対応）。
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（StandardWorkLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: ground_code
+        type: String
+        args: [10]
+        nullable: true
+        comment: 事由コード
+      - name: stamping_start_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 出勤時間
+      - name: stamping_end_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 退勤時間
+      - name: rounded_stamping_start_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 丸め出勤時間
+      - name: rounded_stamping_end_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 丸め退勤時間
+      - name: job_start
+        type: String
+        args: [8]
+        nullable: true
+        comment: 始業時間
+      - name: job_end
+        type: String
+        args: [8]
+        nullable: true
+        comment: 終業時間
+      - name: working_interval
+        type: Integer
+        nullable: true
+        comment: インターバル時間
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 履歴管理用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態（pending/committed/rolledback等）
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: BreakLayer
     table_name: t_break_layer
@@ -212,7 +574,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -242,7 +604,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -253,13 +615,122 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+
+  - class_name: BreakLayerHistory
+    table_name: t_break_layer_history
+    description: |
+      休憩時間層の履歴（保証トランザクション対応）。
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（BreakLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: break_start_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 休憩開始時間
+      - name: break_end_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 休憩終了時間
+      - name: rounded_break_start_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 丸め休憩開始時間
+      - name: rounded_break_end_time
+        type: String
+        args: [8]
+        nullable: true
+        comment: 丸め休憩終了時間
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 履歴管理用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態（pending/committed/rolledback等）
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: StatutoryWorkLayer
     table_name: t_statutory_work_layer
@@ -275,7 +746,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -297,7 +768,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -308,13 +779,113 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: StatutoryWorkLayerHistory
+    table_name: t_statutory_work_layer_history
+    description: |
+      法定労働層の履歴（保証トランザクション対応）。
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（StatutoryWorkLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: standard_legal_minutes
+        type: Integer
+        nullable: true
+        comment: 標準法定労働時間
+      - name: legal_job_minutes
+        type: Integer
+        nullable: true
+        comment: 法定労働時間
+      - name: legal_overwork_minutes
+        type: Integer
+        nullable: true
+        comment: 法定外労働時間
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 履歴管理用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態（pending/committed/rolledback等）
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: PrescribedWorkLayer
     table_name: t_prescribed_work_layer
@@ -330,7 +901,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -352,7 +923,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -363,13 +934,112 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: PrescribedWorkLayerHistory
+    table_name: t_prescribed_work_layer_history
+    description: 所定労働層の履歴（保証トランザクション対応）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（PrescribedWorkLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: standard_job_minutes
+        type: Integer
+        nullable: true
+        comment: 標準所定労働時間
+      - name: job_total_minutes
+        type: Integer
+        nullable: true
+        comment: 所定労働時間
+      - name: job_overwork_minutes
+        type: Integer
+        nullable: true
+        comment: 所定外労働時間
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 以下履歴管理用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: PrescribedHolidayWorkLayer
     table_name: t_prescribed_holiday_work_layer
@@ -385,7 +1055,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -399,7 +1069,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -410,13 +1080,104 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: PrescribedHolidayWorkLayerHistory
+    table_name: t_prescribed_holiday_work_layer_history
+    description: 所定休日労働層の履歴（保証トランザクション対応）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（PrescribedHolidayWorkLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: prescribed_holiday_work_minutes
+        type: Integer
+        nullable: true
+        comment: 所定休日労働時間
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 以下履歴管理用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: StatutoryHolidayWorkLayer
     table_name: t_statutory_holiday_work_layer
@@ -432,7 +1193,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -446,7 +1207,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -457,13 +1218,104 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: StatutoryHolidayWorkLayerHistory
+    table_name: t_statutory_holiday_work_layer_history
+    description: 法定休日労働層の履歴（保証トランザクション対応）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（StatutoryHolidayWorkLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: statutory_holiday_work_minutes
+        type: Integer
+        nullable: true
+        comment: 法定休日労働時間
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 以下履歴管理用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: NightWorkLayer
     table_name: t_night_work_layer
@@ -479,7 +1331,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -493,7 +1345,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -504,13 +1356,104 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: NightWorkLayerHistory
+    table_name: t_night_work_layer_history
+    description: 深夜労働層の履歴（保証トランザクション対応）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（NightWorkLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: late_night_overwork_minutes
+        type: Integer
+        nullable: true
+        comment: 深夜労働時間
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 以下履歴管理用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: PaidLeaveLayer
     table_name: t_paid_leave_layer
@@ -526,7 +1469,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -540,7 +1483,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -551,13 +1494,104 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: PaidLeaveLayerHistory
+    table_name: t_paid_leave_layer_history
+    description: 有給休暇層の履歴（保証トランザクション対応）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（PaidLeaveLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: paid_holiday_hours
+        type: Integer
+        nullable: true
+        comment: 有給時間数
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 補償トランザクション用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: ChildLeaveLayer
     table_name: t_child_leave_layer
@@ -573,7 +1607,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -587,7 +1621,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -598,13 +1632,104 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: ChildLeaveLayerHistory
+    table_name: t_child_leave_layer_history
+    description: 育児休暇層の履歴（保証トランザクション対応）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（ChildLeaveLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: child_time_leave_hours
+        type: Integer
+        nullable: true
+        comment: 育児時間休暇
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 補償トランザクション用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: LateEarlyLayer
     table_name: t_late_early_layer
@@ -620,7 +1745,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -638,7 +1763,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -649,13 +1774,108 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: LateEarlyLayerHistory
+    table_name: t_late_early_layer_history
+    description: 遅刻早退層の履歴（保証トランザクション対応）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（LateEarlyLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: late_minutes
+        type: Integer
+        nullable: true
+        comment: 遅刻時間
+      - name: early_departure_minutes
+        type: Integer
+        nullable: true
+        comment: 早退時間
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 補償トランザクション用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: AbsenceLayer
     table_name: t_absence_layer
@@ -671,7 +1891,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -685,7 +1905,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -696,13 +1916,104 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: AbsenceLayerHistory
+    table_name: t_absence_layer_history
+    description: 欠勤層の履歴（保証トランザクション対応）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（AbsenceLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: absence_minutes
+        type: Integer
+        nullable: true
+        comment: 欠勤時間
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 補償トランザクション用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: SubstituteLeaveLayer
     table_name: t_substitute_leave_layer
@@ -718,7 +2029,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -728,7 +2039,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -739,13 +2050,100 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: SubstituteLeaveLayerHistory
+    table_name: t_substitute_leave_layer_history
+    description: 代休層の履歴（保証トランザクション対応）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（SubstituteLeaveLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 補償トランザクション用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: SuspensionLayer
     table_name: t_suspension_layer
@@ -761,7 +2159,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -771,7 +2169,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -782,13 +2180,100 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: SuspensionLayerHistory
+    table_name: t_suspension_layer_history
+    description: 休職層の履歴（保証トランザクション対応）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（SuspensionLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 補償トランザクション用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
 
   - class_name: ClosedLayer
     table_name: t_closed_layer
@@ -804,7 +2289,7 @@ models:
         args: [36]
         nullable: false
         index: true
-        comment: 従業員UUID
+        comment: ユーザーコード
       - name: target_date
         type: Date
         nullable: false
@@ -814,7 +2299,7 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 作成者従業員コード
+        comment: 作成者ユーザーコード
       - name: update_date
         type: TIMESTAMP
         default: datetime.now
@@ -825,10 +2310,97 @@ models:
         type: String
         args: [10]
         nullable: false
-        comment: 更新者従業員コード
+        comment: 更新者ユーザーコード
       - name: update_count
         type: Integer
         nullable: false
         comment: 更新回数
     uniques:
       - [employee_uuid, target_date]
+
+  - class_name: ClosedLayerHistory
+    table_name: t_closed_layer_history
+    description: 休業層の履歴（保証トランザクション対応）
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: 履歴ID
+      - name: original_id
+        type: Integer
+        nullable: false
+        comment: 元テーブル（ClosedLayer）のID
+      - name: employee_uuid
+        type: String
+        args: [36]
+        nullable: false
+        comment: ユーザーコード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: create_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 作成者ユーザーコード
+      - name: update_date
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        onupdate: datetime.now
+        comment: 更新日時
+      - name: update_employee_code
+        type: String
+        args: [10]
+        nullable: false
+        comment: 更新者ユーザーコード
+      - name: update_count
+        type: Integer
+        nullable: false
+        comment: 更新回数
+      # 補償トランザクション用
+      - name: transaction_id
+        type: String
+        args: [36]
+        nullable: false
+        comment: トランザクションID
+      - name: history_version
+        type: Integer
+        nullable: false
+        comment: 履歴バージョン
+      - name: operation_type
+        type: String
+        args: [10]
+        nullable: false
+        comment: 操作種別（I/U/D）
+      - name: transaction_status
+        type: String
+        args: [20]
+        nullable: false
+        comment: トランザクション状態
+      - name: operated_at
+        type: TIMESTAMP
+        nullable: false
+        default: datetime.now
+        comment: 操作日時
+      - name: operated_by
+        type: String
+        args: [36]
+        nullable: false
+        comment: 操作者UUID
+      - name: is_latest
+        type: Boolean
+        nullable: false
+        default: true
+        comment: 最新レコードフラグ
+    constraints:
+      - type: index
+        columns: [original_id]
+      - type: index
+        columns: [transaction_id]
+      - type: index
+        columns: [employee_uuid, target_date]
+      - type: unique
+        columns: [original_id, history_version]
