@@ -35,6 +35,105 @@ class Availability(IntEnum):
     UNUSABLE = 2
 
 
+class WorkingSystemType(IntEnum):
+    NORMAL = 1
+    FLEX = 2
+    TRANSFORMATION = 3
+
+
+class FlexibleLaborType(IntEnum):
+    ONE_MONTH = 1
+    ONE_YEAR = 2
+
+
+class JobBeforeStartTime(IntEnum):
+    INCLUDE = 1
+    EXCLUDE = 2
+
+
+"""
+Enum:所定労働日区分
+ON 　所定労働日扱い
+OFF　所定労働日扱いしない
+"""
+
+
+class LaborDayClassification(IntEnum):
+    ON = 1
+    OFF = 2
+
+"""
+Enum:出勤日扱い区分
+ON 　出勤日扱いする
+OFF　出勤日扱いしない
+"""
+
+
+class AttendanceDateClassification(IntEnum):
+    ON = 1
+    OFF = 2
+
+
+"""
+Enum:賃金支給区分
+ON 　賃金支給する
+OFF　賃金支給しない
+"""
+
+
+class WageClassification(IntEnum):
+    ON = 1
+    OFF = 2
+
+"""
+Enum:事由マスタ　出勤簿利用可否
+AVAILABLE 利用可能
+UNAVAILABLE 利用不可
+OUT 利用不可[変更不可]
+"""
+
+
+class TimecardAvailableFlg(IntEnum):
+    AVAILABLE = 1
+    UNAVAILABLE = 2
+    OUT = 9
+
+
+class NonStampFlg(IntEnum):
+    AVAILABLE = 1
+    UNAVAILABLE = 2
+
+
+"""
+Enum:色
+BLACK 黒色
+BLUE 青色
+RED 赤色
+GREEN 緑色
+"""
+
+
+class Color(IntEnum):
+    BLACK = 1
+    BLUE = 2
+    RED = 3
+    GREEN = 4
+
+
+"""
+Enum:申請対象フラグ
+ON 対象
+OFF 対象外
+OUT 対象外[利用不可]
+"""
+
+
+class WorkflowFlg(IntEnum):
+    ON = 1
+    OFF = 2
+    OUT = 9
+
+
 """
 Enum:システム画面フラグ
 ON システム画面

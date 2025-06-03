@@ -18,11 +18,11 @@ class Users(Base):
     """
     __tablename__ = 'm_users'
     id = Column('id', Integer, primary_key=True, autoincrement=True, comment='サロゲートキー')
-    user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, unique=True, default=lambda: str(uuid.uuid4()), comment='ユーザーUUID')
+    user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, unique=True, default="lambda: str(uuid.uuid4())", comment='ユーザーUUID')
     user_name = Column('user_name', String(50, collation='ja_JP.utf8'), nullable=False, comment='氏名')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
 
@@ -34,10 +34,10 @@ class Tenants(Base):
     """
     __tablename__ = 'm_tenants'
     id = Column('id', Integer, primary_key=True, autoincrement=True, comment='サロゲートキー')
-    tenant_uuid = Column('tenant_uuid', String(36, collation='ja_JP.utf8'), nullable=False, unique=True, default=lambda: str(uuid.uuid4()), comment='テナントUUID')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    tenant_uuid = Column('tenant_uuid', String(36, collation='ja_JP.utf8'), nullable=False, unique=True, default="lambda: str(uuid.uuid4())", comment='テナントUUID')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
 
@@ -54,9 +54,9 @@ class Employee(Base):
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, comment='ユーザーUUID')
     belong_start_date = Column('belong_start_date', Date, nullable=False, comment='所属開始日')
     belong_end_date = Column('belong_end_date', Date, nullable=True, comment='所属終了日（現役中はNULL）')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -64,6 +64,97 @@ class Employee(Base):
         ForeignKeyConstraint(['tenant_uuid'], ['m_tenants.tenant_uuid']),
         UniqueConstraint('tenant_uuid', 'user_uuid', 'belong_start_date')
     )
+
+
+class GroundFormat(Base):
+    """
+    　事由マスタ
+    """
+    __tablename__ = 'm_ground_format'
+    id = Column('id', Integer, primary_key=True, autoincrement=True, comment='サロゲートキー')
+    ground_code = Column('ground_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='事由コード')
+    ground_name = Column('ground_name', String(30, collation='ja_JP.utf8'), nullable=False, comment='事由名')
+    labor_day_classification = Column('labor_day_classification', EnumType(enum_class=LaborDayClassification), nullable=False, comment='出勤率(分母)')
+    attendance_date_classification = Column('attendance_date_classification', EnumType(enum_class=AttendanceDateClassification), nullable=False, comment='出勤率(分子)')
+    wage_classification = Column('wage_classification', EnumType(enum_class=WageClassification), nullable=False, comment='賃金')
+    timecard_available_flg = Column('timecard_available_flg', EnumType(enum_class=TimecardAvailableFlg), nullable=False, comment='出勤簿での利用を許可するか')
+    non_stamp_flg = Column('non_stamp_flg', EnumType(enum_class=NonStampFlg), nullable=False, comment='打刻時間未使用フラグ')
+    workflow_flg = Column('workflow_flg', EnumType(enum_class=WorkflowFlg), nullable=False, comment='事由申請の対象とするか')
+    color = Column('color', EnumType(enum_class=Color), nullable=False, comment='色')
+    default_flg = Column('default_flg', Boolean, nullable=False, comment='デフォルトフラグ')
+    calender = Column('calender', EnumType(enum_class=Calender), nullable=False, comment='カレンダー')
+    contents = Column('contents', String(4096, collation='ja_JP.utf8'), nullable=True, comment='補足説明')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now")
+    create_employee_code = Column('create_employee_code', String(10, collation='ja_JP.utf8'), nullable=False)
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now)
+    update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False)
+    update_count = Column('update_count', Integer, nullable=False)
+    __mapper_args__ = {
+        'version_id_col': "update_count"    }
+    __table_args__ = (
+        Index('ix_m_ground_format', ground_code),
+        UniqueConstraint(ground_code)
+    )
+
+
+class WorkSchedule(Base):
+    """
+    　勤務体系マスタ（共通）
+    """
+    __tablename__ = 'm_work_schedule'
+    id = Column('id', Integer, primary_key=True, autoincrement=True, comment='サロゲートキー')
+    tenant_uuid = Column('tenant_uuid', String(36, collation='ja_JP.utf8'), nullable=False, comment='テナントUUID')
+    work_schedule_code = Column('work_schedule_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='勤務体系コード')
+    work_schedule_name = Column('work_schedule_name', String(30, collation='ja_JP.utf8'), nullable=False, comment='勤務体系名')
+    working_system_abbreviation = Column('working_system_abbreviation', String(4, collation='ja_JP.utf8'), nullable=False, comment='勤務体系略名')
+    working_system_type = Column('working_system_type', EnumType(enum_class=WorkingSystemType), nullable=False, comment='勤務の種類')
+    is_job_before_start_time = Column('is_job_before_start_time', EnumType(enum_class=JobBeforeStartTime), nullable=True, comment='始業前労働を含む')
+    job_start = Column('job_start', String(5, collation='ja_JP.utf8'), nullable=True, comment='始業時間')
+    job_end = Column('job_end', String(5, collation='ja_JP.utf8'), nullable=True, comment='終業時間')
+    term_from = Column('term_from', Date, nullable=False, comment='有効開始日')
+    term_to = Column('term_to', Date, nullable=True, comment='有効終了日')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now")
+    create_employee_code = Column('create_employee_code', String(10, collation='ja_JP.utf8'), nullable=False)
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now)
+    update_employee_code = Column('update_employee_code', String(10, collation='ja_JP.utf8'), nullable=False)
+    update_count = Column('update_count', Integer, nullable=False)
+    type = Column('type', String(20, collation='ja_JP.utf8'), nullable=False, default="normal", comment='勤務体系種別')
+    __mapper_args__ = {
+        'polymorphic_on': "type",        'polymorphic_identity': "normal",        'version_id_col': "update_count"    }
+
+
+
+class FlexWorkSchedule(WorkSchedule):
+    """
+    　勤務体系マスタ（フレックス）
+    """
+    __tablename__ = 'm_work_schedule_flex'
+    id = Column('id', Integer, primary_key=True)
+    core_start = Column('core_start', String(5, collation='ja_JP.utf8'), nullable=True, comment='コアタイム[開始]')
+    core_end = Column('core_end', String(5, collation='ja_JP.utf8'), nullable=True, comment='コアタイム[終了]')
+    flex_start = Column('flex_start', String(5, collation='ja_JP.utf8'), nullable=True, comment='フレキシブルタイム[開始]')
+    flex_end = Column('flex_end', String(5, collation='ja_JP.utf8'), nullable=True, comment='フレキシブルタイム[終了]')
+    __mapper_args__ = {
+        'polymorphic_identity': "flex"    }
+
+
+
+class TransformationWorkSchedule(WorkSchedule):
+    """
+    　勤務体系マスタ（変形時間労働制）
+    """
+    __tablename__ = 'm_work_schedule_transformation'
+    id = Column('id', Integer, primary_key=True)
+    office_code = Column('office_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='事業所コード')
+    business_type = Column('business_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='職種コード')
+    target_date = Column('target_date', Date, nullable=False, comment='対象日')
+    flexible_labor_type = Column('flexible_labor_type', EnumType(enum_class=FlexibleLaborType), nullable=True, comment='変形時間労働制のタイプ')
+    ground_code = Column('ground_code', String(10, collation='ja_JP.utf8'), nullable=False, comment='事由コード')
+    job_start = Column('job_start', String(5, collation='ja_JP.utf8'), nullable=True, comment='始業時間')
+    job_end = Column('job_end', String(5, collation='ja_JP.utf8'), nullable=True, comment='終業時間')
+    __mapper_args__ = {
+        'polymorphic_identity': "transformation"    }
+
 
 
 class TimeCardLayer(Base):
@@ -81,9 +172,9 @@ class TimeCardLayer(Base):
     end_time_office_code = Column('end_time_office_code', String(10, collation='ja_JP.utf8'), nullable=True, comment='退勤打刻_事業所コード')
     telework_flg = Column('telework_flg', Boolean, nullable=True, comment='テレワークフラグ')
     smile_mark = Column('smile_mark', String(10, collation='ja_JP.utf8'), nullable=True, comment='スマイルマーク')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -93,8 +184,8 @@ class TimeCardLayer(Base):
 
 class TimeCardLayerHistory(Base):
     """
-    　タイムカード層の履歴（保証トランザクション対応）。  
-    　更新・削除・ロールバックなどの際に履歴を保持する。
+    　タイムカード層の履歴（保証トランザクション対応）  
+    　更新・削除・ロールバックなどの際に履歴を保持する
     """
     __tablename__ = 't_time_card_layer_history'
     id = Column('id', Integer, primary_key=True, autoincrement=True, comment='履歴ID')
@@ -108,18 +199,18 @@ class TimeCardLayerHistory(Base):
     end_time_office_code = Column('end_time_office_code', String(10, collation='ja_JP.utf8'), nullable=True, comment='退勤打刻_事業所コード')
     telework_flg = Column('telework_flg', Boolean, nullable=True, comment='テレワークフラグ')
     smile_mark = Column('smile_mark', String(10, collation='ja_JP.utf8'), nullable=True)
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態（pending/committed/rolledback等）')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -141,9 +232,9 @@ class StandardWorkLayer(Base):
     job_start = Column('job_start', String(8, collation='ja_JP.utf8'), nullable=True, comment='始業時間')
     job_end = Column('job_end', String(8, collation='ja_JP.utf8'), nullable=True, comment='終業時間')
     working_interval = Column('working_interval', Integer, nullable=True, comment='インターバル時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -153,7 +244,7 @@ class StandardWorkLayer(Base):
 
 class StandardWorkLayerHistory(Base):
     """
-    　標準労働層の履歴（保証トランザクション対応）。
+    　標準労働層の履歴（保証トランザクション対応）
     """
     __tablename__ = 't_standard_work_layer_history'
     id = Column('id', Integer, primary_key=True, autoincrement=True, comment='履歴ID')
@@ -168,18 +259,18 @@ class StandardWorkLayerHistory(Base):
     job_start = Column('job_start', String(8, collation='ja_JP.utf8'), nullable=True, comment='始業時間')
     job_end = Column('job_end', String(8, collation='ja_JP.utf8'), nullable=True, comment='終業時間')
     working_interval = Column('working_interval', Integer, nullable=True, comment='インターバル時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態（pending/committed/rolledback等）')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -197,9 +288,9 @@ class BreakLayer(Base):
     break_end_time = Column('break_end_time', String(8, collation='ja_JP.utf8'), nullable=True, comment='休憩終了時間')
     rounded_break_start_time = Column('rounded_break_start_time', String(8, collation='ja_JP.utf8'), nullable=True, comment='丸め休憩開始時間')
     rounded_break_end_time = Column('rounded_break_end_time', String(8, collation='ja_JP.utf8'), nullable=True, comment='丸め休憩終了時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -209,7 +300,7 @@ class BreakLayer(Base):
 
 class BreakLayerHistory(Base):
     """
-    　休憩時間層の履歴（保証トランザクション対応）。
+    　休憩時間層の履歴（保証トランザクション対応）
     """
     __tablename__ = 't_break_layer_history'
     id = Column('id', Integer, primary_key=True, autoincrement=True, comment='履歴ID')
@@ -220,18 +311,18 @@ class BreakLayerHistory(Base):
     break_end_time = Column('break_end_time', String(8, collation='ja_JP.utf8'), nullable=True, comment='休憩終了時間')
     rounded_break_start_time = Column('rounded_break_start_time', String(8, collation='ja_JP.utf8'), nullable=True, comment='丸め休憩開始時間')
     rounded_break_end_time = Column('rounded_break_end_time', String(8, collation='ja_JP.utf8'), nullable=True, comment='丸め休憩終了時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態（pending/committed/rolledback等）')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -248,9 +339,9 @@ class StatutoryWorkLayer(Base):
     standard_legal_minutes = Column('standard_legal_minutes', Integer, nullable=True, comment='標準法定労働時間')
     legal_job_minutes = Column('legal_job_minutes', Integer, nullable=True, comment='法定労働時間')
     legal_overwork_minutes = Column('legal_overwork_minutes', Integer, nullable=True, comment='法定外労働時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -260,7 +351,7 @@ class StatutoryWorkLayer(Base):
 
 class StatutoryWorkLayerHistory(Base):
     """
-    　法定労働層の履歴（保証トランザクション対応）。
+    　法定労働層の履歴（保証トランザクション対応）
     """
     __tablename__ = 't_statutory_work_layer_history'
     id = Column('id', Integer, primary_key=True, autoincrement=True, comment='履歴ID')
@@ -270,18 +361,18 @@ class StatutoryWorkLayerHistory(Base):
     standard_legal_minutes = Column('standard_legal_minutes', Integer, nullable=True, comment='標準法定労働時間')
     legal_job_minutes = Column('legal_job_minutes', Integer, nullable=True, comment='法定労働時間')
     legal_overwork_minutes = Column('legal_overwork_minutes', Integer, nullable=True, comment='法定外労働時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態（pending/committed/rolledback等）')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -298,9 +389,9 @@ class PrescribedWorkLayer(Base):
     standard_job_minutes = Column('standard_job_minutes', Integer, nullable=True, comment='標準所定労働時間')
     job_total_minutes = Column('job_total_minutes', Integer, nullable=True, comment='所定労働時間')
     job_overwork_minutes = Column('job_overwork_minutes', Integer, nullable=True, comment='所定外労働時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -320,18 +411,18 @@ class PrescribedWorkLayerHistory(Base):
     standard_job_minutes = Column('standard_job_minutes', Integer, nullable=True, comment='標準所定労働時間')
     job_total_minutes = Column('job_total_minutes', Integer, nullable=True, comment='所定労働時間')
     job_overwork_minutes = Column('job_overwork_minutes', Integer, nullable=True, comment='所定外労働時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -346,9 +437,9 @@ class PrescribedHolidayWorkLayer(Base):
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, index=True, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     prescribed_holiday_work_minutes = Column('prescribed_holiday_work_minutes', Integer, nullable=True, comment='所定休日労働時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -366,18 +457,18 @@ class PrescribedHolidayWorkLayerHistory(Base):
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     prescribed_holiday_work_minutes = Column('prescribed_holiday_work_minutes', Integer, nullable=True, comment='所定休日労働時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -392,9 +483,9 @@ class StatutoryHolidayWorkLayer(Base):
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, index=True, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     statutory_holiday_work_minutes = Column('statutory_holiday_work_minutes', Integer, nullable=True, comment='法定休日労働時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -412,18 +503,18 @@ class StatutoryHolidayWorkLayerHistory(Base):
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     statutory_holiday_work_minutes = Column('statutory_holiday_work_minutes', Integer, nullable=True, comment='法定休日労働時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -438,9 +529,9 @@ class NightWorkLayer(Base):
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, index=True, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     late_night_overwork_minutes = Column('late_night_overwork_minutes', Integer, nullable=True, comment='深夜労働時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -458,18 +549,18 @@ class NightWorkLayerHistory(Base):
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     late_night_overwork_minutes = Column('late_night_overwork_minutes', Integer, nullable=True, comment='深夜労働時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -484,9 +575,9 @@ class PaidLeaveLayer(Base):
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, index=True, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     paid_holiday_hours = Column('paid_holiday_hours', Integer, nullable=True, comment='有給時間数')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -504,18 +595,18 @@ class PaidLeaveLayerHistory(Base):
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     paid_holiday_hours = Column('paid_holiday_hours', Integer, nullable=True, comment='有給時間数')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -530,9 +621,9 @@ class ChildLeaveLayer(Base):
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, index=True, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     child_time_leave_hours = Column('child_time_leave_hours', Integer, nullable=True, comment='育児時間休暇')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -550,18 +641,18 @@ class ChildLeaveLayerHistory(Base):
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     child_time_leave_hours = Column('child_time_leave_hours', Integer, nullable=True, comment='育児時間休暇')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -577,9 +668,9 @@ class LateEarlyLayer(Base):
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     late_minutes = Column('late_minutes', Integer, nullable=True, comment='遅刻時間')
     early_departure_minutes = Column('early_departure_minutes', Integer, nullable=True, comment='早退時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -598,18 +689,18 @@ class LateEarlyLayerHistory(Base):
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     late_minutes = Column('late_minutes', Integer, nullable=True, comment='遅刻時間')
     early_departure_minutes = Column('early_departure_minutes', Integer, nullable=True, comment='早退時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -624,9 +715,9 @@ class AbsenceLayer(Base):
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, index=True, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     absence_minutes = Column('absence_minutes', Integer, nullable=True, comment='欠勤時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -644,18 +735,18 @@ class AbsenceLayerHistory(Base):
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
     absence_minutes = Column('absence_minutes', Integer, nullable=True, comment='欠勤時間')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -669,9 +760,9 @@ class SubstituteLeaveLayer(Base):
     id = Column('id', Integer, primary_key=True, autoincrement=True, comment='サロゲートキー')
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, index=True, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -688,18 +779,18 @@ class SubstituteLeaveLayerHistory(Base):
     original_id = Column('original_id', Integer, nullable=False, comment='元テーブル（SubstituteLeaveLayer）のID')
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -713,9 +804,9 @@ class SuspensionLayer(Base):
     id = Column('id', Integer, primary_key=True, autoincrement=True, comment='サロゲートキー')
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, index=True, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -732,18 +823,18 @@ class SuspensionLayerHistory(Base):
     original_id = Column('original_id', Integer, nullable=False, comment='元テーブル（SuspensionLayer）のID')
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -757,9 +848,9 @@ class ClosedLayer(Base):
     id = Column('id', Integer, primary_key=True, autoincrement=True, comment='サロゲートキー')
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, index=True, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     __table_args__ = (
@@ -776,18 +867,18 @@ class ClosedLayerHistory(Base):
     original_id = Column('original_id', Integer, nullable=False, comment='元テーブル（ClosedLayer）のID')
     user_uuid = Column('user_uuid', String(36, collation='ja_JP.utf8'), nullable=False, comment='ユーザーUUID')
     target_date = Column('target_date', Date, nullable=False, comment='対象日')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='作成者ユーザーコード')
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新日時')
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now, comment='更新日時')
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False, comment='更新者ユーザーコード')
     update_count = Column('update_count', Integer, nullable=False, comment='更新回数')
     transaction_id = Column('transaction_id', String(36, collation='ja_JP.utf8'), nullable=False, comment='トランザクションID')
     history_version = Column('history_version', Integer, nullable=False, comment='履歴バージョン')
     operation_type = Column('operation_type', String(10, collation='ja_JP.utf8'), nullable=False, comment='操作種別（I/U/D）')
     transaction_status = Column('transaction_status', String(20, collation='ja_JP.utf8'), nullable=False, comment='トランザクション状態')
-    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default=datetime.now, comment='操作日時')
+    operated_at = Column('operated_at', TIMESTAMP, nullable=False, default="datetime.now", comment='操作日時')
     operated_by = Column('operated_by', String(36, collation='ja_JP.utf8'), nullable=False, comment='操作者UUID')
-    is_latest = Column('is_latest', Boolean, nullable=False, default=True, comment='最新レコードフラグ')
+    is_latest = Column('is_latest', Boolean, nullable=False, default=true, comment='最新レコードフラグ')
     __table_args__ = (
         UniqueConstraint('original_id', 'history_version')
     )
@@ -803,13 +894,13 @@ class Role(Base):
     role_name = Column('role_name', String(30, collation='ja_JP.utf8'), nullable=False, comment='ロール名')
     permission = Column('permission', EnumType(enum_class=Permission), nullable=False, comment='代行可能')
     system_company_flg = Column('system_company_flg', EnumType(enum_class=SystemCompanyFlg), nullable=False, comment='システム管理会社フラグ')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False)
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now)
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now)
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False)
     update_count = Column('update_count', Integer, nullable=False)
     __mapper_args__ = {
-        'version_id_col': update_count    }
+        'version_id_col': "update_count"    }
     __table_args__ = (
         Index('ix_m_role', role_code),
         UniqueConstraint(role_code)
@@ -829,13 +920,13 @@ class Policy(Base):
     action = Column('action', EnumType(enum_class=ActionType, int_enum=True), nullable=False, comment='アクション')
     effect = Column('effect', EnumType(enum_class=EffectType, int_enum=True), nullable=False, comment='許可 or 拒否')
     condition = Column('condition', Text, nullable=True, comment='条件[JSON]')
-    create_date = Column('create_date', TIMESTAMP, nullable=False, default=datetime.now, comment='作成日時')
+    create_date = Column('create_date', TIMESTAMP, nullable=False, default="datetime.now", comment='作成日時')
     create_user_uuid = Column('create_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False)
-    update_date = Column('update_date', TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now)
+    update_date = Column('update_date', TIMESTAMP, nullable=False, default="datetime.now", onupdate=datetime.now)
     update_user_uuid = Column('update_user_uuid', String(10, collation='ja_JP.utf8'), nullable=False)
     update_count = Column('update_count', Integer, nullable=False)
     __mapper_args__ = {
-        'version_id_col': update_count    }
+        'version_id_col': "update_count"    }
     __table_args__ = (
         Index('ix_m_policy_principal_type_principal_id_resource_type_resource_id_action', principal_type, principal_id, resource_type, resource_id, action),
         UniqueConstraint(principal_type, principal_id, resource_type, resource_id, action)

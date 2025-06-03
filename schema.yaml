@@ -159,6 +159,297 @@ models:
       - type: unique
         columns: [tenant_uuid, user_uuid, belong_start_date]
 
+  - class_name: GroundFormat
+    table_name: m_ground_format
+    description: 事由マスタ
+    mapper_args:
+      version_id_col: update_count
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: ground_code
+        type: String
+        args: [10]
+        collation: ja_JP.utf8
+        nullable: false
+        comment: 事由コード
+      - name: ground_name
+        type: String
+        args: [30]
+        collation: ja_JP.utf8
+        nullable: false
+        comment: 事由名
+      - name: labor_day_classification
+        type: EnumType
+        args:
+          - enum_class=LaborDayClassification
+        nullable: false
+        comment: 出勤率(分母)
+      - name: attendance_date_classification
+        type: EnumType
+        args:
+          - enum_class=AttendanceDateClassification
+        nullable: false
+        comment: 出勤率(分子)
+      - name: wage_classification
+        type: EnumType
+        args:
+          - enum_class=WageClassification
+        nullable: false
+        comment: 賃金
+      - name: timecard_available_flg
+        type: EnumType
+        args:
+          - enum_class=TimecardAvailableFlg
+        nullable: false
+        comment: 出勤簿での利用を許可するか
+      - name: non_stamp_flg
+        type: EnumType
+        args:
+          - enum_class=NonStampFlg
+        nullable: false
+        comment: 打刻時間未使用フラグ
+      - name: workflow_flg
+        type: EnumType
+        args:
+          - enum_class=WorkflowFlg
+        nullable: false
+        comment: 事由申請の対象とするか
+      - name: color
+        type: EnumType
+        args:
+          - enum_class=Color
+        nullable: false
+        comment: 色
+      - name: default_flg
+        type: Boolean
+        nullable: false
+        comment: デフォルトフラグ
+      - name: contents
+        type: String
+        args: [4096]
+        collation: ja_JP.utf8
+        nullable: true
+        comment: 補足説明
+      - name: create_date
+        type: TIMESTAMP
+        default: datetime.now
+        nullable: false
+      - name: create_employee_code
+        type: String
+        args: [10]
+        collation: ja_JP.utf8
+        nullable: false
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+      - name: update_employee_code
+        type: String
+        args: [10]
+        collation: ja_JP.utf8
+        nullable: false
+      - name: update_count
+        type: Integer
+        nullable: false
+    indexes:
+      - [ground_code]
+    uniques:
+      - [ground_code]
+
+  - class_name: WorkSchedule
+    table_name: m_work_schedule
+    description: 勤務体系マスタ（共通）
+    mapper_args:
+      polymorphic_on: type
+      polymorphic_identity: normal
+      version_id_col: update_count
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: true
+        comment: サロゲートキー
+      - name: tenant_uuid
+        type: String
+        args: [36]
+        collation: ja_JP.utf8
+        nullable: false
+        comment: テナントUUID
+      - name: work_schedule_code
+        type: String
+        args: [10]
+        collation: ja_JP.utf8
+        nullable: false
+        comment: 勤務体系コード
+      - name: work_schedule_name
+        type: String
+        args: [30]
+        collation: ja_JP.utf8
+        nullable: false
+        comment: 勤務体系名
+      - name: working_system_abbreviation
+        type: String
+        args: [4]
+        collation: ja_JP.utf8
+        nullable: false
+        comment: 勤務体系略名
+      - name: working_system_type
+        type: EnumType
+        args:
+          - enum_class=WorkingSystemType
+        nullable: false
+        comment: 勤務の種類
+      - name: is_job_before_start_time
+        type: EnumType
+        args:
+          - enum_class=JobBeforeStartTime
+        nullable: true
+        comment: 始業前労働を含む
+      - name: job_start
+        type: String
+        args: [5]
+        collation: ja_JP.utf8
+        nullable: true
+        comment: 始業時間
+      - name: job_end
+        type: String
+        args: [5]
+        collation: ja_JP.utf8
+        nullable: true
+        comment: 終業時間
+      - name: term_from
+        type: Date
+        nullable: false
+        comment: 有効開始日
+      - name: term_to
+        type: Date
+        nullable: true
+        comment: 有効終了日
+      - name: create_date
+        type: TIMESTAMP
+        default: datetime.now
+        nullable: false
+      - name: create_employee_code
+        type: String
+        args: [10]
+        collation: ja_JP.utf8
+        nullable: false
+      - name: update_date
+        type: TIMESTAMP
+        default: datetime.now
+        onupdate: datetime.now
+        nullable: false
+      - name: update_employee_code
+        type: String
+        args: [10]
+        collation: ja_JP.utf8
+        nullable: false
+      - name: update_count
+        type: Integer
+        nullable: false
+      - name: type
+        type: String
+        args: [20]
+        collation: ja_JP.utf8
+        nullable: false
+        default: normal
+        comment: 勤務体系種別
+
+  - class_name: FlexWorkSchedule
+    table_name: m_work_schedule_flex
+    description: 勤務体系マスタ（フレックス）
+    inherits: WorkSchedule
+    mapper_args:
+      polymorphic_identity: flex
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: false
+        foreign_key: m_work_schedule.id
+      - name: core_start
+        type: String
+        args: [5]
+        collation: ja_JP.utf8
+        nullable: true
+        comment: コアタイム[開始]
+      - name: core_end
+        type: String
+        args: [5]
+        collation: ja_JP.utf8
+        nullable: true
+        comment: コアタイム[終了]
+      - name: flex_start
+        type: String
+        args: [5]
+        collation: ja_JP.utf8
+        nullable: true
+        comment: フレキシブルタイム[開始]
+      - name: flex_end
+        type: String
+        args: [5]
+        collation: ja_JP.utf8
+        nullable: true
+        comment: フレキシブルタイム[終了]
+
+  - class_name: TransformationWorkSchedule
+    table_name: m_work_schedule_transformation
+    description: 勤務体系マスタ（変形時間労働制）
+    inherits: WorkSchedule
+    mapper_args:
+      polymorphic_identity: transformation
+    columns:
+      - name: id
+        type: Integer
+        primary_key: true
+        autoincrement: false
+        foreign_key: m_work_schedule.id
+      - name: office_code
+        type: String
+        args: [10]
+        collation: ja_JP.utf8
+        nullable: false
+        comment: 事業所コード
+      - name: business_type
+        type: String
+        args: [10]
+        collation: ja_JP.utf8
+        nullable: false
+        comment: 職種コード
+      - name: target_date
+        type: Date
+        nullable: false
+        comment: 対象日
+      - name: flexible_labor_type
+        type: EnumType
+        args:
+          - enum_class=FlexibleLaborType
+        nullable: true
+        comment: 変形時間労働制のタイプ
+      - name: ground_code
+        type: String
+        args: [10]
+        collation: ja_JP.utf8
+        nullable: false
+        comment: 事由コード
+      - name: job_start
+        type: String
+        args: [5]
+        collation: ja_JP.utf8
+        nullable: true
+        comment: 始業時間
+      - name: job_end
+        type: String
+        args: [5]
+        collation: ja_JP.utf8
+        nullable: true
+        comment: 終業時間
+
   - class_name: TimeCardLayer
     table_name: t_time_card_layer
     description: タイムカード層
@@ -242,8 +533,8 @@ models:
   - class_name: TimeCardLayerHistory
     table_name: t_time_card_layer_history
     description: |
-      タイムカード層の履歴（保証トランザクション対応）。  
-      更新・削除・ロールバックなどの際に履歴を保持する。
+      タイムカード層の履歴（保証トランザクション対応）  
+      更新・削除・ロールバックなどの際に履歴を保持する
     columns:
       - name: id
         type: Integer
@@ -457,7 +748,7 @@ models:
   - class_name: StandardWorkLayerHistory
     table_name: t_standard_work_layer_history
     description: |
-      標準労働層の履歴（保証トランザクション対応）。
+      標準労働層の履歴（保証トランザクション対応）
     columns:
       - name: id
         type: Integer
@@ -657,7 +948,7 @@ models:
   - class_name: BreakLayerHistory
     table_name: t_break_layer_history
     description: |
-      休憩時間層の履歴（保証トランザクション対応）。
+      休憩時間層の履歴（保証トランザクション対応）
     columns:
       - name: id
         type: Integer
@@ -829,7 +1120,7 @@ models:
   - class_name: StatutoryWorkLayerHistory
     table_name: t_statutory_work_layer_history
     description: |
-      法定労働層の履歴（保証トランザクション対応）。
+      法定労働層の履歴（保証トランザクション対応）
     columns:
       - name: id
         type: Integer

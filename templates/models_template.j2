@@ -25,7 +25,7 @@ Base = declarative_base()
 {%- endmacro %}
 
 {% for model in models %}
-class {{ model.class_name }}(Base):
+class {{ model.class_name }}({{ model.inherits if model.inherits else "Base" }}):
     """
     {{ ('\u3000' + model.description.strip()).replace('\n', '\n    \u3000') }}
     """
@@ -39,7 +39,7 @@ class {{ model.class_name }}(Base):
     {% if col.nullable in [True, False] %}{% set _ = parts.append("nullable=" ~ col.nullable) %}{% endif %}
     {% if col.unique        %}{% set _ = parts.append("unique=True")        %}{% endif %}
     {% if col.index         %}{% set _ = parts.append("index=True")         %}{% endif %}
-    {% if col.default       %}{% set _ = parts.append("default=" ~ col.default) %}{% endif %}
+    {% if col.default       %}{% set _ = parts.append("default=" ~ col.default | tojson) %}{% endif %}
     {% if col.onupdate      %}{% set _ = parts.append("onupdate=" ~ col.onupdate) %}{% endif %}
     {% if col.server_default%}{% set _ = parts.append("server_default=" ~ col.server_default) %}{% endif %}
     {% if col.comment       %}{% set _ = parts.append("comment='" ~ col.comment ~ "'") %}{% endif %}
@@ -48,7 +48,7 @@ class {{ model.class_name }}(Base):
 {% if model.mapper_args %}
     __mapper_args__ = {
 {%         for k, v in model.mapper_args.items() %}
-        '{{ k }}': {{ v }}{% if not loop.last %},{% endif %}
+        '{{ k }}': {{ v | tojson }}{% if not loop.last %},{% endif %}
 {%         endfor %}
     }
 {% endif %}
@@ -81,7 +81,7 @@ class {{ model.class_name }}(Base):
                 {%- set _ = targets.append("'" ~ c.references.table ~ "." ~ col ~ "'") %}
             {%- endfor %}
             {%- set remote = targets | join(', ') %}
-            {%- set _ = tbl_args.append("ForeignKeyConstraint([" ~ local_cols ~ "], [" ~ remote ~ "])") %}
+            {%- set _ = tbl_args.append("ForeignKeyConstraint([" ~ local_cols ~ "], [" ~ remote ~ "])" ) %}
         {%- endif %}
     {%- endfor %}
 {%- endif %}
